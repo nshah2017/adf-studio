@@ -1,0 +1,40 @@
+name: Agent task
+description: A task suitable for an AI agent. Defined inputs, outputs, and success criteria are required before assignment.
+title: "[agent] "
+labels: ["agent-task"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One or two sentences. What should exist when this is done?
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Inputs and scope
+      description: Files, endpoints, or components in scope. Name what is OUT of scope too.
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      description: Machine-checkable where possible. "pytest passes, new test covers X, UI shows Y".
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk level
+      description: Drives how much autonomy the agent gets (see AGENTS.md).
+      options: ["low (docs, tests)", "medium (feature code)", "high (data handling, deletion, config)"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: planfirst
+    attributes:
+      label: Planning
+      options:
+        - label: This task needs a plan artifact in plans/ approved before implementation

@@ -1,0 +1,68 @@
+# Executes the plan-architect custom agent when an issue is labeled
+# "needs-plan". Demonstrates: CI invocation of an agent, job outputs as the
+# cross-job handoff contract, defensive trigger gating, and a human gate as
+# an environment approval before anything downstream happens.
+name: Plan agent
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue to plan
+        required: true
+
+permissions:
+  contents: read
+  issues: write
+  copilot-requests: write   # lets Copilot CLI authenticate with GITHUB_TOKEN
+
+jobs:
+  plan:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'needs-plan'
+    runs-on: ubuntu-latest
+    outputs:
+      plan_ready: ${{ steps.emit.outputs.plan_ready }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Resolve issue number
+        id: issue
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "num=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "num=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run plan-architect
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          copilot --yolo \
+            --agent plan-architect \
+            --max-ai-credits 2 \
+            -p "Read issue #${{ steps.issue.outputs.num }} in ${{ github.repository }}. \
+                Follow your agent profile: produce the plan file in plans/ and post \
+                it as an issue comment. Do not modify any other files." \
+            < /dev/null
+      - name: Publish handoff output
+        id: emit
+        run: echo "plan_ready=true" >> "$GITHUB_OUTPUT"
+
+  await-plan-approval:
+    needs: plan
+    runs-on: ubuntu-latest
+    environment:
+      name: plan-approval   # configure required reviewers on this environment
+    permissions:
+      issues: write
+    steps:
+      - name: Mark plan approved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit "${{ github.event.issue.number || inputs.issue_number }}" \
+            --repo "${{ github.repository }}" \
+            --add-label "plan-approved"

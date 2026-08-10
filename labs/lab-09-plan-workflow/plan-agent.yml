@@ -1,0 +1,81 @@
+# Lab 09 (reliable workflows): execute the plan-architect roster agent from
+# Actions with a job-output handoff and an environment approval gate.
+name: Plan agent
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue to plan
+        required: true
+
+permissions:
+  contents: read
+  issues: write
+  # TODO(D2): one more permission lets Copilot CLI authenticate with the
+  # built-in GITHUB_TOKEN (no PAT). Add it.
+  ____FILL_ME____
+
+jobs:
+  plan:
+    # TODO(reliable-workflows): "labeled" fires for EVERY label. Write the
+    # defensive gate: run only when the label is needs-plan, OR when the
+    # event is a manual workflow_dispatch.
+    if: ____FILL_ME____
+    runs-on: ubuntu-latest
+    outputs:
+      # TODO(reliable-workflows): expose the step output below as a JOB
+      # output so the downstream job can consume it through needs.
+      plan_ready: ____FILL_ME____
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Resolve issue number
+        id: issue
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "num=${{ inputs.issue_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "num=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run plan-architect
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # TODO(D2): two flags are missing. One suppresses interactive
+          # tool-approval prompts (required in CI). One caps AI spend for
+          # this unattended session. Add both.
+          copilot ____FILL_ME____ \
+            --agent plan-architect \
+            ____FILL_ME____ \
+            -p "Read issue #${{ steps.issue.outputs.num }} in ${{ github.repository }}. \
+                Follow your agent profile: produce the plan file in plans/ and post \
+                it as an issue comment. Do not modify any other files." \
+            < /dev/null
+      - name: Publish handoff output
+        id: emit
+        # TODO(reliable-workflows): write plan_ready=true to the file that
+        # turns an echo into a structured step output.
+        run: echo "plan_ready=true" >> ____FILL_ME____
+
+  await-plan-approval:
+    # TODO(reliable-workflows): this job must not start until the plan job
+    # finished. Declare the dependency.
+    ____FILL_ME____
+    runs-on: ubuntu-latest
+    # TODO(D6): the human gate: target an environment named plan-approval
+    # (configure required reviewers on it in repo settings). Add the block.
+    ____FILL_ME____
+    permissions:
+      issues: write
+    steps:
+      - name: Mark plan approved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit "${{ github.event.issue.number || inputs.issue_number }}" \
+            --repo "${{ github.repository }}" \
+            --add-label "plan-approved"

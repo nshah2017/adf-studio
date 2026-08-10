@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash",
+        "bash": "scripts/hooks/block-push.sh",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

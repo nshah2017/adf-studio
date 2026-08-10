@@ -1,0 +1,28 @@
+# Lab 05 (D2): the Copilot cloud agent runs in an ephemeral, firewalled
+# Actions-powered environment. This file pre-installs dependencies there so
+# the agent's session starts productive instead of fighting setup.
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/copilot-setup-steps.yml"]
+
+jobs:
+  # TODO(D2): the platform only recognizes this file if the job has one
+  # exact, documented name. Replace the placeholder with it.
+  ____FILL_ME____:
+    runs-on: ubuntu-latest
+    permissions:
+      # TODO(D6): least privilege: this job only checks out and installs.
+      # What single permission does it need, at what level?
+      ____FILL_ME____
+    steps:
+      - uses: actions/checkout@v4
+      # TODO(D2): TaskBoard's backend is Python 3.12 and its dependencies are
+      # in backend/requirements.txt. Add the two steps that prepare that.
+      - ____FILL_ME____
+      - ____FILL_ME____
+      # TODO(D2): the frontend is Node 20 with npm. Add the two steps.
+      - ____FILL_ME____
+      - ____FILL_ME____

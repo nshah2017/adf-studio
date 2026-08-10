@@ -1,0 +1,28 @@
+apiVersion: adf/v1
+kind: McpServer
+metadata:
+  id: tasks-backup
+  name: Tasks backup service
+  description: Backs up and restores TaskBoard data snapshots
+  owner: platform
+  version: "0.1"
+  status: proposed
+spec:
+  type: remote
+  remote:
+    url: https://mcp.internal/tasks-backup
+  auth:
+    method: token
+    secretRefs: [TASKS_BACKUP_TOKEN]
+  pools: [operate]
+  tools:
+    - name: create-backup
+      description: Write a snapshot of data/tasks.json to backup storage
+      access: write
+      dataSensitivity: internal
+      requiresGate: false
+    - name: restore-backup
+      description: Overwrite data/tasks.json from a chosen snapshot
+      access: irreversible
+      dataSensitivity: internal
+      requiresGate: true

@@ -1,0 +1,76 @@
+# Lab 12 (D5): orchestrate two specialist agents inside Actions and
+# consolidate their outputs. This is the reviewer/auditor pipeline pattern:
+# matrix fan-out, artifact handoff, needs ordering, and concurrency control.
+name: Agent review pipeline
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# TODO(D5): multiple agents push to the same PR branch; every push triggers
+# this workflow, and only the LATEST run matters. Add workflow-level
+# concurrency: group by workflow AND PR source branch (with run_id as the
+# fallback), cancelling stale in-progress runs.
+concurrency:
+  group: ____FILL_ME____
+  cancel-in-progress: ____FILL_ME____
+
+permissions:
+  contents: read
+
+jobs:
+  agent-check:
+    runs-on: ubuntu-latest
+    strategy:
+      # TODO(D5): one specialist failing must NOT cancel the other's run.
+      fail-fast: ____FILL_ME____
+      matrix:
+        # TODO(D5): fan out over the two specialist agents by name.
+        agent: ____FILL_ME____
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm install -g @github/copilot
+      - name: Run specialist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          copilot --yolo --agent=${{ matrix.agent }} \
+            -p "Analyze the current branch as ${{ matrix.agent }}; write findings to ${{ matrix.agent }}.md" \
+            < /dev/null
+      - name: Publish findings
+        # TODO(D5): hand the file to the consolidate job. Chat memory is not
+        # a handoff; upload it as a named workflow artifact. Fail this step
+        # if the agent produced no file.
+        uses: ____FILL_ME____
+        with:
+          name: ${{ matrix.agent }}-output
+          path: ${{ matrix.agent }}.md
+          if-no-files-found: ____FILL_ME____
+
+  consolidate:
+    # TODO(D5): this job must wait for every matrix leg of agent-check.
+    ____FILL_ME____
+    runs-on: ubuntu-latest
+    steps:
+      # TODO(D5): retrieve both artifacts by name.
+      - uses: ____FILL_ME____
+        with:
+          name: reviewer-output
+      - uses: actions/download-artifact@v4
+        with:
+          name: auditor-output
+      - name: Publish consolidated summary
+        # TODO(D5): append both files to the human-readable run summary
+        # (the special file Actions renders on the run page).
+        run: |
+          {
+            echo "# Consolidated agent findings"
+            cat reviewer.md
+            cat auditor.md
+          } >> ____FILL_ME____
+
+# Bonus (answer in a comment here): if EVERY run must complete in order
+# instead of keeping only the latest, what replaces cancel-in-progress, and
+# why must the two never be combined?
+# ____FILL_ME____

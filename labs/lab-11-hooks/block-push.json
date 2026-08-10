@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "____FILL_ME____": [
+      {
+        "type": "command",
+        "____FILL_ME____": "bash",
+        "bash": "scripts/hooks/block-push.sh",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

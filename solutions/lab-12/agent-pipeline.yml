@@ -1,0 +1,59 @@
+name: Agent review pipeline
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  agent-check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: [reviewer, auditor]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm install -g @github/copilot
+      - name: Run specialist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          copilot --yolo --agent=${{ matrix.agent }} \
+            -p "Analyze the current branch as ${{ matrix.agent }}; write findings to ${{ matrix.agent }}.md" \
+            < /dev/null
+      - name: Publish findings
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.agent }}-output
+          path: ${{ matrix.agent }}.md
+          if-no-files-found: error
+
+  consolidate:
+    needs: agent-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: reviewer-output
+      - uses: actions/download-artifact@v4
+        with:
+          name: auditor-output
+      - name: Publish consolidated summary
+        run: |
+          {
+            echo "# Consolidated agent findings"
+            cat reviewer.md
+            cat auditor.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+# Bonus: use queue: max on the concurrency group instead. Queueing preserves
+# every run in order; cancel-in-progress deliberately discards stale runs.
+# Combining them is contradictory (queue everything AND cancel it).

@@ -1,0 +1,41 @@
+# Lab 08 (D2/D6): a team proposes an internal MCP server that backs up and
+# restores the TaskBoard data file. Register it with honest risk tags. The
+# tags are not decoration: requiresGate drives whether workflows using a
+# tool must declare a human gate.
+apiVersion: adf/v1
+kind: McpServer
+metadata:
+  id: tasks-backup
+  name: Tasks backup service
+  description: Backs up and restores TaskBoard data snapshots
+  owner: platform
+  version: "0.1"
+  # TODO(D6): a newly proposed, unreviewed server does not enter the
+  # registry as approved. What status does it start with?
+  status: ____FILL_ME____
+spec:
+  type: remote
+  remote:
+    url: https://mcp.internal/tasks-backup
+  auth:
+    method: token
+    # TODO(D6): secrets are referenced by NAME only, never a literal value.
+    # Add one secret reference for this server's token.
+    secretRefs: ____FILL_ME____
+  # TODO(D2): which phase pool(s) does a backup/restore tool belong to?
+  pools: ____FILL_ME____
+  tools:
+    - name: create-backup
+      description: Write a snapshot of data/tasks.json to backup storage
+      # TODO(D6): creating a backup changes external state but destroys
+      # nothing. Tag access honestly; does it require a gate?
+      access: ____FILL_ME____
+      dataSensitivity: internal
+      requiresGate: ____FILL_ME____
+    - name: restore-backup
+      description: Overwrite data/tasks.json from a chosen snapshot
+      # TODO(D6): restore OVERWRITES live user data; the old state is gone.
+      # Tag it, and set requiresGate accordingly.
+      access: ____FILL_ME____
+      dataSensitivity: internal
+      requiresGate: ____FILL_ME____

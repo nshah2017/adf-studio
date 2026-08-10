@@ -1,0 +1,28 @@
+apiVersion: adf/v1
+kind: McpServer
+metadata:
+  id: github-remote
+  name: GitHub remote MCP server
+  description: GitHub-hosted MCP server exposing GitHub API tools to agents without local setup
+  owner: platform
+  version: "1.0"
+  status: approved
+spec:
+  type: remote
+  remote:
+    url: https://api.githubcopilot.com/mcp/
+  auth:
+    method: oauth
+    secretRefs: []
+  pools: [plan, build, test, operate]
+  tools:
+    - name: issues
+      description: Read and create issues
+      access: write
+      dataSensitivity: internal
+      requiresGate: false
+    - name: repo-read
+      description: Read repository contents
+      access: read
+      dataSensitivity: internal
+      requiresGate: false
