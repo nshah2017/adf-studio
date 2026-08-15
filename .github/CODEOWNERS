@@ -1,5 +1,5 @@
 # Required reviewers. Combined with branch protection, this preserves the
 # review gate for agent-authored PRs (the task assigner cannot self-approve).
-*            @YOUR-GITHUB-USERNAME
-/backend/    @YOUR-GITHUB-USERNAME
-/.github/    @YOUR-GITHUB-USERNAME
+*            @nshah2017
+/backend/    @nshah2017
+/.github/    @nshah2017
